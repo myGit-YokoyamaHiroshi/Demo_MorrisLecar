@@ -2,10 +2,12 @@
 MATLAB demo script of Morris Lecar Model
 
 # Example of the results
-The code generating the following figure is found in ex3_I_f_plot.m.<br>
-(Typical F-I curve profile of type I mode)
+<img src="./figures/ex3/type1/result.png" width=50%><br>
+<img src="./figures/ad_ex2/type1/result.png" width=50%> <br>
 
-<img src="./figures/ex3/result.png" width=90%>
+The code generating the above figures are found in "ex3_I_f_plot.m" and "ad_ex2_bifurcation".<br>
+These figures showed typical bifurcation diagrams with type I excitability.
+
 
 # Authors<br>
 &ensp; Hiroshi Yokoyama<br>
