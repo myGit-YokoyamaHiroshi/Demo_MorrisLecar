@@ -29,7 +29,7 @@ time   = linspace(0, Nt-1, Nt) * dt; % time vector; unit : msec
 % V2   =  18;
 % V3   =  12;
 % V4   =  17.4;
-% Iext =  0:2:150;
+% Iext =  -10:2:150;
 % phi  =  1/15; %unit: 1/msec 
 
 %%% typical parameter setting for Type II mode
@@ -140,10 +140,52 @@ for i = 1:length(Iext)
     end
 end
 close(h)
+%% Determine regions where the system has a limit cycle
+periodic = zeros(size(V_list));
+for i = 1:length(Iext)
+    idx = find(I_list==Iext(i));
+    tmp = zeros(size(idx));
+    for j = 1:length(idx)
+        if contains(eqpt_labels{idx(j)}, 'Stable') %&& length(idx)~=1
+            tmp(j) = 1;
+        end
+    end
+
+    if sum(tmp)==0
+        periodic(i) = 1;
+    end
+end
+
+Iperi   = Iext(periodic==1);
+Vmaxmin = zeros(length(Iperi), 2);
+for i = 1:length(Iperi)
+    X      = zeros(Nt, length(X0));
+    X(1,:) = X0;
+    
+    for j = 2:Nt
+        X_now  = X(j-1,:);
+        %%%%% Numerical integral scheme with 4th order Runge Kutta method
+        X(j,:) = runge_kutta(X_now, dt, @MorrisLecar, C, gL, gK, gCa,...
+                                                      VL, VK, VCa,...
+                                                      V1, V2, V3, V4,...
+                                                      Iperi(i), phi);
+    end
+    
+    Vmaxmin(i,:) = [min(X(:,1)), max(X(:,1))];
+end
+
 %%
 fig = figure(1);
 figure_setting(40, 20, fig)
+%%%%%% Show the region where the system has a limit cycle
+plot(Iperi, Vmaxmin, 'b', 'linewidth', 4,'HandleVisibility','off')
 hold on
+X  =[Iperi, fliplr(Iperi)];
+Y = [Vmaxmin(:,1).', fliplr(Vmaxmin(:,2).')];
+h = fill(X, Y, 'k','DisplayName','limit cycle');
+
+set(h,'facealpha',.1)
+%%%%%% Show the I-V curve 
 for i = 1:6
     if sum(eqpt_idx==i) ~=0
         idx = find(eqpt_idx==i);
@@ -157,7 +199,7 @@ for i = 1:6
 end
 xlabel('parameter \it I')
 ylabel('Membrane potential V_*')
-legend('location', 'southeast')
+legend('location', 'southeastoutside')
 
 fname = [filepath, filesep, 'figures', filesep, 'ad_ex2', filesep, 'bifurcation'];
 figure_save(fig, fname)
